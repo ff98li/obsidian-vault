@@ -6,7 +6,7 @@
 ## Methods
 **The approach they purposed to solve the problem**
 
-## Novelty
+## Innovation
 **What's new in their approach? Why is it better than the exisiting works?**
 
 ## Limitations

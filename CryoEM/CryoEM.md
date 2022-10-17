@@ -20,7 +20,11 @@
 	2. Very low SNR ratio: ~-20 dB (what does this measurement signify?)
 	3. molecules in a sample can deform, and frozen in various unknown conformations
 
+## Contrast Transfer Function (CTF)
+https://youtu.be/mPynoF2j6zc
+
 ## Homogeneous Reconstruction
+* 
 
 ## Heterogenenous Reconstruction
 * Most methods in this category assume the poses to be known (from consensus reconstruction?)

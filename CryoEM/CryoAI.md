@@ -1,8 +1,7 @@
 ## Current challenges
-* Jointly estimate ...
+* To estimate ...
 	* the unknown 3D poses
 	* the *3D electron scattering potential* of a biomolecule from noisy 2D images
-		* Why do we need to estimate 3D electron scattering potential?
 * Primary bottleneck of existing works for cryo-EM reconstruction algorithms
 	* **orientation matching**
 		* Long computation time, poorly scaled with increasing dataset sizes
@@ -26,9 +25,7 @@
 * Modern coordinate network architecture for <u>memory efficiency</u>
 * Symmetric loss function
 
-## Novelty
-**What's new in their approach? Why is it better than the exisiting works?**
-
+## Innovations
 ### Exisiting works
 * Iteratively alternates between ...
 	* updating $V$ 
@@ -108,7 +105,3 @@
 
 ## Limitations
 **Under what circumstances will their method fail?**
-
-## Keywords
-* **scattering potential volume**: an electrostatic potential that is created by the charges carried by each molecule and their surrounding environment and scatters the probing electrons.
-* **CTF**: contrast transfer function
