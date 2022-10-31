@@ -1,21 +1,41 @@
 ## Image Formation Model
 The generation of image $X: \mathbb{R}^2 \to \mathbb{R}$ can be modeled as
 $$
-\DeclareMathOperator*{\PSF}{PSF}
 \begin{align*}
-	X(r_x, r_y) &= \PSF \circledast\ T_t \int_{\mathbb{R}} V(R^\top \mathbf{r})dr_z + \epsilon\\
-	\mathbf{r} &= [r_x,\ r_y,\ r_z]^\top
+	X(r_x, r_y)
+	&= O \circledast PSF \\
+	\mathbf{r} &= [r_x,\ r_y,\ r_z]^\top \\
+	O &= 
+	T_t \int_{\mathbb{R}} V(R^\top \mathbf{r})dr_z + \epsilon
 \end{align*}
 $$
 * $V$: the density volume
 * $\mathbf{R} \in SO(3)$: the 3-D rotation group, an unknown orientation of $V$
 * $T_t$: an unknown in-plane translation by $t \in \mathbb{R}^2$
 	* corresponding to imperfect centering of the volume within the image
-* $\PSF$: the **point spread function** for the microscope before being corrupted with additive noise and registered on a discrete grid of image size $D \times D$
+* $PSF$: the **point spread function** for the microscope before being corrupted with additive noise and registered on a discrete grid of image size $D \times D$
 * The image is the convolution product of the specimen with the $\PSF$
 
-Note that the Fourier transform of a covolution product becomes a normal multiplicative product:
-
+Note that by *the convolution theorem* the Fourier transform of a covolution product becomes a normal multiplicative product:
+$$
+\begin{align*}
+	\mathcal{F}\{ X \}
+	&= \mathcal{F}\{ O \circledast PSF \} \\
+	&= \mathcal{F}\{ O \} \cdot \mathcal{F}\{ PSF \} \\
+	&= \mathcal{F}\{ O \} \cdot CTF \\
+	\implies
+	X &=
+	\mathcal{F}^{-1}\left\{ \mathcal{F}\{ O \} \cdot CTF \right\}
+\end{align*}
+$$
+Yes the Fourier transform of the PSF is the CTF.
+Then the 2-D projection of the single particle closer to its "true" appearance can be recovered by
+$$
+	O = \mathcal{F}^{-1} \left\{
+		\frac{\mathcal{F}\{ X \}}{CTF}
+	\right\}
+$$
+And this is the **CTF correction**.
 
 ## Point Spread Function (PSF)
 ### Basic Concepts
@@ -29,7 +49,7 @@ The size of the PSF generally refers to the size of the bright centre (maxima). 
 
 ### TEM Imaging
 ![Microscope architecture](../images/ImageFormationModel/tem_architecture.png)
-
+TODO
 
 
 
