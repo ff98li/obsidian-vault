@@ -11,6 +11,7 @@
  
 ## Methods
 * Neural network to learn heterogeneous ensembles of cryo-EM density maps
+	* Instead of approximating a single volume $\hat{V}: \mathbb{R}^{3} \to \mathbb{R}$, cryoDRGN proposes a deep generative model to approximate the function $\hat{V}: \mathbb{R}^{3+n} \to \mathbb{R}$
 
 ### CryoDRGN Image Encoder $q_\xi ( \mathbf{z} | X )$
 * Observed image $X$ are generated from projections of $V$ at some unknown random pose $\mathbf{R} \in SO(3)$.

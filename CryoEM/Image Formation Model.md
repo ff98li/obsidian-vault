@@ -47,10 +47,10 @@ The PSF is a result of diffraction and interference. The light collected from th
 
 The size of the PSF generally refers to the size of the bright centre (maxima). An image of a point source of light appears as a PSF in the image. As the PSF gets bigger, for two point sources of light, their Gaussian will blur together, losing the ability to resolve the two objects (e).
 
-### TEM Imaging
-![Microscope architecture](../images/ImageFormationModel/tem_architecture.png)
+### The Rayleigh Criterion
 TODO
 
+#### Nyquist Frequency
 
 
 ## References
