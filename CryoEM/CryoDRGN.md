@@ -13,6 +13,10 @@
 * Neural network to learn heterogeneous ensembles of cryo-EM density maps
 	* Instead of approximating a single volume $\hat{V}: \mathbb{R}^{3} \to \mathbb{R}$, cryoDRGN proposes a deep generative model to approximate the function $\hat{V}: \mathbb{R}^{3+n} \to \mathbb{R}$
 
+### Image Preprocessing
+1. Hartley's normalisation (8pt algo)
+
+
 ### CryoDRGN Image Encoder $q_\xi ( \mathbf{z} | X )$
 * Observed image $X$ are generated from projections of $V$ at some unknown random pose $\mathbf{R} \in SO(3)$.
 * Assume that *volume heterogeneity* is generated from a continuous latent space $\mathbf{z}$
@@ -21,16 +25,40 @@
 	* We choose Gaussian to be the approximating distribution $q(\mathbf{z})$
 	* We would like to train a neural network (encoder) parameterised by $\xi$ that predicts $(\mu_{\mathbf{z}|X},\ \Sigma_{\mathbf{z}|X})$ for the Gaussian $q(\mathbf{z})$
 		* $q_\xi (\mathbf{z}) = \mathcal{N}(\mathbf{z}\ |\ NNet(\xi))$
+### Encoder MLP
+$$
+\begin{align*}
+	\texttt{ResidLinear}(\mathbf{h}) &:=
+	\mathbf{W}_{\texttt{enc\_dim} \times \texttt{enc\_dim}}^\top \mathbf{h} + \mathbf{h} \\
+	\mathbf{h}_0 &= \texttt{ReLU}(\mathbf{W}_{D \times \texttt{enc\_dim}}^\top \mathbf{x}) \\
+	\mathbf{h}_n &= \texttt{ReLU}\big( \texttt{ResidLinear}(\mathbf{h}_{n-1}) \big) \\
+	\boldsymbol{\xi} &=
+	\begin{cases}
+		\mathbf{W}_{2|\texttt{z}| \times \texttt{enc\_dim}}^\top \mathbf{h}_n & \text{if}\ 2|\mathbf{z}| \neq \texttt{enc\_dim} \\
+		\texttt{ResidLinear}(\mathbf{h}_n) & \text{else}
+	\end{cases} \\
+	\boldsymbol{\mu}_z &= \boldsymbol{\xi}[:|\mathbf{z}|] \\
+	\texttt{diag}(\log \boldsymbol{\Sigma}_z) &= \boldsymbol{\xi}[|\mathbf{z}|:] \\
+	\boldsymbol{\epsilon} &\sim \mathcal{N}(\mathbf{0},\ \mathbf{I}) \\
+	\mathbf{z} &=
+	\boldsymbol{\Sigma}_z \boldsymbol{\epsilon} + \boldsymbol{\mu}_z
+\end{align*}
+$$
 
 ### CryoDRGN Volume Decoder $p_\theta(V|\mathbf{k}, \mathbf{z})$
 * We would like to approximate a probablistic distribution $p_\theta(V|\mathbf{k}, \mathbf{z})$ for volume $V(\mathbf{k}, \mathbf{z})$
 	* $p_\theta(V|\mathbf{k}, \mathbf{z}) = \mathcal{N}(V\ |\ NNet(\theta))$
 * A positionally encoded MLP
-	* Three hidden layers
- 
-#### Positional encoding
+	* Positional encoding length: `enc_dim = D2 = D // 2`
+	* `in_dim = 3 * (enc_dim) * 2 + zdim`
+		* `3` dimensions: x, y, z
+		* 2 components: sine, cosine
+	* One input hidden layer with normal linear + three hidden layers with `ResidLinear` + one hidden layer + one linear output layer
+
+#### Positional encoding (needs update)
+##### `linear_lowf`
 $$
-\mathbf{pe}^{i}(\mathbf{k}) =
+\gamma^{i}(\mathbf{k}) =
 \begin{bmatrix}
 	\sin \Big(k_x D\pi(\frac{2}{D})^{\frac{i}{\frac{D}{2}-1}}\Big) &
 	\cos \Big(k_x D\pi(\frac{2}{D})^{\frac{i}{\frac{D}{2}-1}}\Big) \\
@@ -42,8 +70,7 @@ $$
 $$
 * $i \in \{0, \ldots, \frac{D}{2} - 1 \}$
 * $D$ is the number of pixels along one dimension (image size of $D \times D$)
-* $\mathbf{k} \in \mathbb{R}^3$ is the 3-D Cartesian coordinates to encode
-	* Does $\mathbf{k}$ reside in the voxel $(-0.5, 0.5)^3$?
+* $\mathbf{k} \in \mathbb{R}^3$ of a 3-D $[-0.5,\ 0.5]^3$ lattice to encode
 
 #### Volume decoder
 * *$V(\mathbf{z}, \mathbf{pe}^i(\mathbf{k})) = V\Big([ \mathbf{z},\ \mathbf{pe}^i(\mathbf{k}) ]\Big)$
@@ -52,7 +79,24 @@ $$
 
 	* The underlined parts confuse me
 
-#### VAE ELBO Loss
+### Decoder MLP
+
+$$
+\begin{align*}
+	\mathbf{h}_0 &= \texttt{ReLU}\Big(
+		\mathbf{W}_{(3*L*2+|\mathbf{z}|) \times \texttt{enc\_dim}}^\top
+		[\gamma_L(\mathbf{k}^\top), \mathbf{z}^\top]^\top
+	\Big)
+	\tag{PE length $L$, default $\frac{D}{2}$}
+	\\
+	\mathbf{h}_n &= \texttt{ReLU}\big(
+		\texttt{ResidLinear}(\mathbf{h}_{n-1})
+	\big) \\
+	
+\end{align*}
+$$
+
+#### VAE Loss
 $$
 \begin{align*}
 	\mathcal{L}(\theta, \xi | X)
@@ -66,8 +110,19 @@ $$
 	- \beta KL \Big( q_\xi ( \mathbf{z} | X )\ ||\ p(\mathbf{z}) \Big)
 \end{align*}
 $$
+* $\beta = \frac{1}{dim(\mathbf{z})}$ by default
 where $p(\mathbf{z})$ is the latent prior $\mathcal{N}(\mathbf{0}, \mathbf{I})$
 * To those new to VAE: the KL divergence in the regularising term is not the KL divergence between the approximating posterior and the true posterior; it happens to be a KL divergence inside the ELBO term, which is part of the KL divergence between the approximating distribution and the true posterior.
+
+or perhaps a more implementable way of writing it (`train_vae.py: line 419`):
+$$
+	\mathcal{L}(y, y_{recon})
+	= \mathcal{L}_{gen}
+	+ \beta KL \Big( q_\xi ( \mathbf{z} | X )\ ||\ p(\mathbf{z}) \Big)
+	= MSE(y, y_{recon}) + \beta KL
+$$
+#### Model Structure
+* Encoder -> ? -> Decoder
 
 ### $ab\ initio$ Heterogeneous Reconstruction
 * Requires the knowledge of pose $\mathbf{R}$ to compute $\mathbf{k}$

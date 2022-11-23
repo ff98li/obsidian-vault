@@ -1,5 +1,5 @@
 ## Fourier Slice Theorem
-The Fourier transform of a 2-D projection of $V$ is a 2-D slice through the origin of $V$ in the Fourier domain, that is, the amplitude and phase of each point in the 2-D Fourier projection have the same values as that of each point in the slice through the origin of the Fourier space at the same angle. The slice is perpendicular to the axis of projection:
+The Fourier transform of a 2-D projection of $V$ is a 2-D slice through the origin of $V$ in the Fourier domain, that is, the amplitude and phase of each point in the 2-D Fourier projection have the same values as that of each point in the slice through the origin of the Fourier space at the same angle. **The slice is perpendicular to the axis of projection**:
 $$
 \mathcal{F}_2 P_2 = \mathcal{S}_2 \mathcal{F}_3
 $$
