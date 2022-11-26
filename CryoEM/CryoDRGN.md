@@ -20,7 +20,6 @@
 ### CryoDRGN Image Encoder $q_\xi ( \mathbf{z} | X )$
 * Observed image $X$ are generated from projections of $V$ at some unknown random pose $\mathbf{R} \in SO(3)$.
 * Assume that *volume heterogeneity* is generated from a continuous latent space $\mathbf{z}$
-	* so does volume heterogeniety here refer to $X$ , a projection of $V$ at a random pose?
 * We would like to approximate the true posterior $p(\mathbf{z}|X)$, which projects the volume heterogeneity $X$ into the latent space $\mathbf{z}$, by using a tractable distribution $q(\mathbf{z})$
 	* We choose Gaussian to be the approximating distribution $q(\mathbf{z})$
 	* We would like to train a neural network (encoder) parameterised by $\xi$ that predicts $(\mu_{\mathbf{z}|X},\ \Sigma_{\mathbf{z}|X})$ for the Gaussian $q(\mathbf{z})$
@@ -56,7 +55,57 @@ $$
 	* One input hidden layer with normal linear + three hidden layers with `ResidLinear` + one hidden layer + one linear output layer
 
 #### Positional encoding (needs update)
-##### `linear_lowf`
+##### Gaussian Positional Encoding (default after ver 1.1)
+$$
+\begin{align*}
+	\gamma(\mathbf{k}) &= [
+		\sin(\mathbf{B}\mathbf{k}),
+		\cos(\mathbf{B}\mathbf{k})
+	] \\
+	\mathbf{B} &\sim \mathcal{N}(0, \sigma)
+
+\end{align*}
+$$
+
+* $\mathbf{B} \in \mathbb{R}^{(3 \cdot \frac{D}{2}) \times 3}$ acts as the frequency component of positional encoding, each entry sampled from $\mathcal{N}(0, \sigma)$
+* $\sigma$ is a hyperparameter defined by users for sampling $\mathbf{B}$. Default 0.5
+* $\mathbf{k}$ is the Cartesian coordinates of a lattice i.e. $[k_x,\ k_y,\ k_z]^\top$
+
+More technical details about this positional encoding can be found in [here](https://bmild.github.io/fourfeat/index.html)
+
+Code:
+```
+## Line 417
+def random_fourier_encoding(self, coords):
+	assert self.rand_freqs is not None
+	# k = coords . rand_freqs
+	# expand rand_freqs with singleton dimension along the batch dimensions
+	# e.g. dim (1, ..., 1, n_rand_feats, 3)
+	
+	freqs = self.rand_freqs.view(*[1] * (len(coords.shape) - 1), -1, 3) * self.D2
+	## freqs.shape = [1, 1, 192, 3], 192 = 3 * enc_dim = 3 * (D//2)
+	
+	kxkykz = coords[..., None, 0:3] * freqs # compute the x,y,z components of k
+	## coords.shape = [8, 6426, 11]
+	## coords[..., None, 0:3].shape = [8, 6426, 1, 3] excluding concantenated z
+	## [8, 6426, 1, 3] * [1, 1, 192, 3] hadamard product of xyz and corresponding xyz
+	## kxkykz.shape = [8, 6426, 192, 3]
+	
+	k = kxkykz.sum(-1) # compute k
+	## k.shape = [8, 6426, 192] get dot product result
+
+	s = torch.sin(k)
+	c = torch.cos(k)
+	x = torch.cat([s, c], -1)
+	x = x.view(*coords.shape[:-1], self.in_dim - self.zdim)
+	if self.zdim > 0:
+	x = torch.cat([x, coords[..., 3:]], -1)
+	assert x.shape[-1] == self.in_dim
+	
+	return x
+```
+
+##### `geom_lowf`
 $$
 \gamma^{i}(\mathbf{k}) =
 \begin{bmatrix}
