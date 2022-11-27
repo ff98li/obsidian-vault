@@ -55,11 +55,11 @@ $$
 	* One input hidden layer with normal linear + three hidden layers with `ResidLinear` + one hidden layer + one linear output layer
 
 #### Positional encoding (needs update)
-##### Gaussian Positional Encoding (default after ver 1.1)
+#### Gaussian Fourier Featurisation (default after ver 1.0)
 $$
 \begin{align*}
 	\gamma(\mathbf{k}) &= [
-		\sin(\mathbf{B}\mathbf{k}),
+		\sin(\mathbf{B}\mathbf{k}),\
 		\cos(\mathbf{B}\mathbf{k})
 	] \\
 	\mathbf{B} &\sim \mathcal{N}(0, \sigma)
@@ -105,7 +105,8 @@ def random_fourier_encoding(self, coords):
 	return x
 ```
 
-##### `geom_lowf`
+##### Geometric Fourier Featurisation (shown in paper)
+##### `geom_ft`
 $$
 \gamma^{i}(\mathbf{k}) =
 \begin{bmatrix}
@@ -120,6 +121,29 @@ $$
 * $i \in \{0, \ldots, \frac{D}{2} - 1 \}$
 * $D$ is the number of pixels along one dimension (image size of $D \times D$)
 * $\mathbf{k} \in \mathbb{R}^3$ of a 3-D $[-0.5,\ 0.5]^3$ lattice to encode
+
+##### `geom_lowf` (default before 1.0)
+$$
+	\gamma^i(\mathbf{k}) = [
+		\sin(
+			\mathbf{k}\frac{D}{2}(\frac{2}{D})^{\frac{i}{\frac{D}{2}-1}}
+		),\
+		\cos(
+			\mathbf{k}\frac{D}{2}(\frac{2}{D})^{\frac{i}{\frac{D}{2}-1}}
+		)
+	]
+$$
+
+
+##### Linear Fourier Featurisation
+$$
+	\gamma^i(\mathbf{k}) = [
+		\sin (\mathbf{k}\frac{i}{(D//2)}),\
+		\cos (\mathbf{k}\frac{i}{(D//2)})
+	]
+$$
+
+Note that in the actual code the denominator is omited.
 
 #### Volume decoder
 * *$V(\mathbf{z}, \mathbf{pe}^i(\mathbf{k})) = V\Big([ \mathbf{z},\ \mathbf{pe}^i(\mathbf{k}) ]\Big)$
