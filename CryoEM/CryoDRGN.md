@@ -165,7 +165,9 @@ $$
 	\mathbf{h}_n &= \texttt{ReLU}\big(
 		\texttt{ResidLinear}(\mathbf{h}_{n-1})
 	\big) \\
-	
+	V_{\mathbf{z}} &=
+		\mathbf{W}_{2 \times \texttt{enc\_dim}}^\top 
+		\mathbf{h}_n
 \end{align*}
 $$
 

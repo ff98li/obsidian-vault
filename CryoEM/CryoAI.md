@@ -103,5 +103,17 @@
 * Address CryoPoseNet's problem of getting stuck in local minima when reconstructing $V$
 	* symmetric loss function
 
+### Symmetric Loss
+$$
+	\mathcal{L}_{sym} (Y_i, \hat{Y}_i) =
+	\sum_{i \in \mathcal{B}} \min \left\{
+		\lVert \hat{Y}_i - \Gamma_{\xi, \theta} (Y_i) \rVert^2_2, \
+		\lVert
+		\mathcal{R}[\hat{Y}_i] - \Gamma_{\xi, \theta} (\mathcal{R}[Y_i])
+		\rVert^2_2
+	\right\}
+$$
+
+
 ## Limitations
 **Under what circumstances will their method fail?**
